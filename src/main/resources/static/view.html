@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Room</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Room Details</h2>
+    <div id="room-details">
+        <div class="alert alert-info">Loading room details...</div>
+    </div>
+    <a href="index.html" class="btn btn-secondary mt-3">Back</a>
+</div>
+
+<script defer>
+    try {
+        const id = new URLSearchParams(location.search).get("id");
+
+        const container = document.getElementById("room-details");
+
+        if (!id) {
+            container.innerHTML = `<div class="alert alert-warning">No Room ID provided in URL.</div>`;
+        } else {
+            fetch(`http://localhost:8080/api/rooms/${id}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Room not found");
+                    }
+                    return response.json();
+                })
+                .then(room => {
+                    if (!room || !room.roomNumber) {
+                        throw new Error("Invalid room data");
+                    }
+
+                    container.innerHTML = `
+                        <table class="table table-bordered">
+                            <tr><th>Room Number</th><td>${room.roomNumber}</td></tr>
+                            <tr><th>Room Type</th><td>${room.roomType}</td></tr>
+                            <tr><th>Number of Pax</th><td>${room.numberOfPersons}</td></tr>
+                            <tr><th>Cost Per Day</th><td>${room.costPerDay}</td></tr>
+                            <tr><th>Amenities</th><td>${(room.amenities || []).join(", ")}</td></tr>
+                        </table>`;
+                })
+                .catch(error => {
+                    container.innerHTML =
+                        `<div class="alert alert-danger">Failed to load room details: ${error.message}</div>`;
+                });
+        }
+    } catch (e) {
+        document.getElementById("room-details").innerHTML =
+            `<div class="alert alert-danger">Something went wrong loading the page. ${e.message}</div>`;
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

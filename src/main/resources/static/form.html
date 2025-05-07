@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create/Edit Room</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h2 id="form-title">Add Room Details</h2>
+    <div id="alert-container"></div>
+    <form id="room-form">
+        <input type="hidden" id="room-id">
+        <div class="mb-3"><label>Room Number</label><input type="text" id="roomNumber" class="form-control" required></div>
+        <div class="mb-3">
+            <label>Room Type</label>
+            <select id="roomType" class="form-control">
+                <option>Double</option>
+                <option>Family</option>
+                <option>Suite</option>
+            </select>
+        </div>
+        <div class="mb-3"><label>No. of Pax</label><input type="number" id="numberOfPersons" class="form-control" required></div>
+        <div class="mb-3"><label>Cost Per Day</label><input type="number" id="costPerDay" class="form-control" required></div>
+        <div class="mb-3"><label>Amenities (comma separated)</label><input type="text" id="amenities" class="form-control"></div>
+        <button class="btn btn-success" type="submit">Save</button>
+        <a href="index.html" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+<script>
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+    const form = document.getElementById("room-form");
+
+    const showAlert = (type, message) => {
+        document.getElementById("alert-container").innerHTML =
+            `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+    }
+
+    if (id) {
+        document.getElementById("form-title").textContent = "Edit Room Details";
+        fetch(`/api/rooms/${id}`)
+            .then(res => res.json())
+            .then(room => {
+                document.getElementById("room-id").value = room.id;
+                document.getElementById("roomNumber").value = room.roomNumber;
+                document.getElementById("roomType").value = room.roomType;
+                document.getElementById("numberOfPersons").value = room.numberOfPersons;
+                document.getElementById("costPerDay").value = room.costPerDay;
+                document.getElementById("amenities").value = room.amenities.join(", ");
+            });
+    }
+
+	form.onsubmit = (e) => {
+	    e.preventDefault();
+	    const room = {
+	        roomNumber: document.getElementById("roomNumber").value,
+	        roomType: document.getElementById("roomType").value,
+	        numberOfPersons: parseInt(document.getElementById("numberOfPersons").value),
+	        costPerDay: parseFloat(document.getElementById("costPerDay").value),
+	        amenities: document.getElementById("amenities").value.split(",").map(item => item.trim())
+	    };
+	    const method = id ? "PUT" : "POST";
+	    const url = id ? `/api/rooms/${id}` : "/api/rooms";
+
+	    fetch(url, {
+	        method: method,
+	        headers: { 'Content-Type': 'application/json' },
+	        body: JSON.stringify(room)
+	    })
+	    .then(res => res.json())
+	    .then(data => {
+	        showAlert("success", data.message || "Room details saved successfully!");
+
+	        setTimeout(() => {
+	            window.location.href = "index.html";
+	        }, 5000);
+	    })
+	    .catch(() => {
+	        showAlert("danger", "Failed to save room details");
+	    });
+	};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

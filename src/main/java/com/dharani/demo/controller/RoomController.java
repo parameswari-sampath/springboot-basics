@@ -46,7 +46,9 @@ public class RoomController {
         if (optionalRoom.isPresent()) {
             return ResponseEntity.ok(optionalRoom.get());
         } else {
-            return ResponseEntity.status(404).body(Map.of("message", "Room not found"));
+            return ResponseEntity.
+                    status(404).
+                    body(Map.of("message", "Room not found"));
         }
     }
 
